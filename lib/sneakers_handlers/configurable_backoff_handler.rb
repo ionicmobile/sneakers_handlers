@@ -1,12 +1,15 @@
-# Using this handler, failed messages will be retried with an exponential
+# Using this handler, failed messages will be retried with a configurable Proc-based
 # backoff delay, for a certain number of times, until they are dead-lettered.
 #
-# To use it you need to defined this handler in your worker:
+# To use it you need to create a custom handler and define its delay_strategy in the worker options.
+# A RuntimeError will be thrown if you don't specify a delay_strategy.
+# Your delay_strategy must return a number (in seconds) to delay for each retry, up to max_retries.
 #
 # from_queue "my-app.queue_name",
 #   exchange: "my_exchange_name",
 #   routing_key: "my_routing_key",
-#   handler: SneakersHandlers::ExponentialBackoffHandler,
+#   handler: SneakersHandlers::ConfigurableBackoffHandler,
+#   delay_strategy: lambda { |retry_count| retry_count * 60 }    # wait 1 minute on first retry, then 2 on next, then 3, etc.
 #   arguments: { "x-dead-letter-exchange" => "my_exchange_name.dlx",
 #                "x-dead-letter-routing-key" => "my-app.queue_name" }}
 #
@@ -17,7 +20,8 @@
 #   exchange: "my_exchange_name",
 #   routing_key: "my_routing_key",
 #   max_retries: 10,
-#   handler: SneakersHandlers::ExponentialBackoffHandler,
+#   delay_strategy: lambda { |retry_count| retry_count * 60 }    # wait 1 minute on first retry, then 2 on next, then 3, etc.
+#   handler: SneakersHandlers::ConfigurableBackoffHandler,
 #   arguments: { "x-dead-letter-exchange" => "my_exchange_name.dlx",
 #                "x-dead-letter-routing-key" => "my-app.queue_name" }}
 
