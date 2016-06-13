@@ -14,7 +14,7 @@ class SneakersHandlers::ConfigurableBackoffHandlerTest < Minitest::Test
       exchange: "sneakers_handlers",
       exchange_type: :topic,
       routing_key: ["lifecycle.created", "lifecycle.updated"],
-      delay_strategy: lambda { |x| DELAY_VALUES[x] },
+      delay_strategy: lambda { |x| DELAY_VALUES[x - 1] },
       handler: SneakersHandlers::ConfigurableBackoffHandler,
       arguments: {
         "x-dead-letter-exchange" => "sneakers_handlers.error",

@@ -67,12 +67,12 @@ module SneakersHandlers
     private
 
     def retry_message(delivery_info, properties, message, reason)
-      attempt_number = death_count(properties[:headers])
+      retry_number = death_count(properties[:headers]) + 1
 
-      if attempt_number < max_retries
-        delay = delay_strategy.call(attempt_number)
+      if retry_number <= max_retries
+        delay = delay_strategy.call(retry_number)
 
-        log("msg=retrying, delay=#{delay}, count=#{attempt_number}, properties=#{properties}, reason=#{reason}")
+        log("msg=retrying, delay=#{delay}, retry_number=#{retry_number}, properties=#{properties}, reason=#{reason}")
 
         routing_key = "#{queue.name}.#{delay}"
 
@@ -82,7 +82,7 @@ module SneakersHandlers
         primary_exchange.publish(message, routing_key: routing_key, headers: properties[:headers])
         acknowledge(delivery_info, properties, message)
       else
-        log("msg=erroring, count=#{attempt_number}, properties=#{properties}")
+        log("msg=erroring, retry_number=#{retry_number}, properties=#{properties}")
         channel.reject(delivery_info.delivery_tag)
       end
     end
