@@ -25,8 +25,7 @@ module SneakersHandlers
   class ExponentialBackoffHandler < ConfigurableBackoffHandler
 
     def initialize(channel, queue, options)
-      options.merge!(delay_strategy: DelayStrategies::EXPONENTIAL)
-      super(channel, queue, options)
+      super(channel, queue, options.merge(delay_strategy: -> x { x ** 2 }))
     end
   end
 end
