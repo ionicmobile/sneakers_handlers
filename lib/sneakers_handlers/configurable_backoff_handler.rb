@@ -70,13 +70,13 @@ module SneakersHandlers
       retry_number = death_count(properties[:headers]) + 1
 
       if retry_number <= max_retries
-        delay = delay_strategy.call(retry_number)
+        delay_ms = (1_000 * delay_strategy.call(retry_number)).to_i
 
-        log("msg=retrying, delay=#{delay}, retry_number=#{retry_number}, properties=#{properties}, reason=#{reason}")
+        log("msg=retrying, delay_ms=#{delay_ms}, retry_number=#{retry_number}, properties=#{properties}, reason=#{reason}")
 
-        routing_key = "#{queue.name}.#{delay}"
+        routing_key = "#{queue.name}.retry.#{delay_ms}"
 
-        retry_queue = create_retry_queue!(delay)
+        retry_queue = create_retry_queue!(delay_ms)
         retry_queue.bind(primary_exchange, routing_key: routing_key)
 
         primary_exchange.publish(message, routing_key: routing_key, headers: properties[:headers])
@@ -123,15 +123,15 @@ module SneakersHandlers
       end
     end
 
-    def create_retry_queue!(delay)
+    def create_retry_queue!(delay_ms)
       clear_queues_cache
-      channel.queue( "#{queue.name}.retry.#{delay}",
+      channel.queue( "#{queue.name}.retry.#{delay_ms}",
          durable: options[:queue_options][:durable],
          arguments: {
            :"x-dead-letter-exchange" => options[:exchange],
            :"x-dead-letter-routing-key" => queue.name,
-           :"x-message-ttl" => (delay * 1_000).to_i,
-           :"x-expires" => (delay * 1_000).to_i * 2
+           :"x-message-ttl" => delay_ms,
+           :"x-expires" => delay_ms * 2
          }
         )
     end

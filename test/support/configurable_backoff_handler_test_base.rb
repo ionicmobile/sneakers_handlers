@@ -118,13 +118,14 @@ module ConfigurableBackoffHandlerTestBase
 
   def retry_queue(delay)
     channel.queues.clear
-    channel.queue("#{queue_name}.retry.#{delay}",
+    delay_ms = s_to_ms(delay)
+    channel.queue("#{queue_name}.retry.#{delay_ms}",
       durable: false,
       arguments: {
         :"x-dead-letter-exchange" => "#{queue_name}.exchange",
         :"x-dead-letter-routing-key" => queue_name,
-        :"x-message-ttl" => (delay * 1_000).to_i,
-        :"x-expires" => (delay * 1_000).to_i * 2,
+        :"x-message-ttl" => delay_ms,
+        :"x-expires" => delay_ms * 2,
       }
     )
   end
@@ -141,7 +142,11 @@ module ConfigurableBackoffHandlerTestBase
     channel.queue_delete("#{queue_name}.error")
 
     expected_retries.each do |delay|
-      channel.queue_delete("#{queue_name}.retry.#{delay}")
+      channel.queue_delete("#{queue_name}.retry.#{s_to_ms(delay)}")
     end
+  end
+
+  def s_to_ms(delay)
+    (delay * 1_000).to_i
   end
 end
