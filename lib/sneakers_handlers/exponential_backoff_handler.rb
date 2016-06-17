@@ -10,20 +10,23 @@
 #   arguments: { "x-dead-letter-exchange" => "my_exchange_name.dlx",
 #                "x-dead-letter-routing-key" => "my-app.queue_name" }}
 #
-# By default it will retry 25 times before dead-lettering a message, but you can
-# also customize that with the `max_retries` option:
+# The following defaults can be overriden:
+#   max_retries: 25,     # The number of times it retries before dead-lettering a message.
+#   scale: 1,            # The scale applied to the exponential formula (i.e. scale * retry_number ** exponent)
+#   exponent: 2          # The factor applied in the exponential formula (i.e. scale * retry_number ** exponent)
 #
 # from_queue "my-app.queue_name",
 #   exchange: "my_exchange_name",
 #   routing_key: "my_routing_key",
 #   max_retries: 10,
+#   scale: 3,
+#   exponent 5,
 #   handler: SneakersHandlers::ExponentialBackoffHandler,
 #   arguments: { "x-dead-letter-exchange" => "my_exchange_name.dlx",
 #                "x-dead-letter-routing-key" => "my-app.queue_name" }}
 
 module SneakersHandlers
   class ExponentialBackoffHandler < ConfigurableBackoffHandler
-
     def initialize(channel, queue, options)
       exponent = options[:exponent] || 2
       scale = options[:scale] || 1

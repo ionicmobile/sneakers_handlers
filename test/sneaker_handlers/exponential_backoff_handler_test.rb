@@ -12,7 +12,6 @@ class SneakersHandlers::ExponentialBackoffHandlerDefaultsTest < Minitest::Test
     max_retries: 3
 end
 
-
 class SneakersHandlers::ExponentialBackoffHandlerTest < Minitest::Test
   include ConfigurableBackoffHandlerTestBase
 
@@ -25,4 +24,3 @@ class SneakersHandlers::ExponentialBackoffHandlerTest < Minitest::Test
     exponent: 0.5,
     scale: 3
 end
-
