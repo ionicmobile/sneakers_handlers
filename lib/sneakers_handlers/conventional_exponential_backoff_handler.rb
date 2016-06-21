@@ -27,14 +27,14 @@
 #   Attempt 16:        9h  6m  7.5s
 #   Attempt 17:       18h 12m 15.5s
 #
-#   Attempt 18:    1d 36h 24m 31.5s
-#   Attempt 19:    3d 12h 49m  3.5s
-#   Attempt 20:    6d 25h 38m  7.5s
-#   Attempt 21:   12d 51h 16m 15.5s
-#   Attempt 22:   24d 42h 32m 31.5s
-#   Attempt 23:   48d 25h  5m  3.5s
-#   Attempt 24:   97d 50h 10m  7.5s
-#   Attempt 25:  194d 40h 20m 15.5s
+#   Attempt 18:    1d 12h 24m 31.5s
+#   Attempt 19:    3d     49m  3.5s
+#   Attempt 20:    6d  1h 38m  7.5s
+#   Attempt 21:   12d  3h 16m 15.5s
+#   Attempt 22:   24d  6h 32m 31.5s
+#   Attempt 23:   48d 13h  5m  3.5s
+#   Attempt 24:   97d  2h 10m  7.5s
+#   Attempt 25:  194d  4h 20m 15.5s
 #
 # To use it you need to defined this handler in your worker:
 #
