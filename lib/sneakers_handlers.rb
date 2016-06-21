@@ -4,6 +4,7 @@ require "sneakers_handlers/dead_letter_handler"
 require "sneakers_handlers/retry_handler"
 require "sneakers_handlers/configurable_backoff_handler"
 require "sneakers_handlers/exponential_backoff_handler"
+require "sneakers_handlers/conventional_exponential_backoff_handler"
 
 module SneakersHandlers
 end

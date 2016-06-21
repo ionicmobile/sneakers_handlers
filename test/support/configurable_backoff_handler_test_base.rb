@@ -22,7 +22,7 @@ module ConfigurableBackoffHandlerTestBase
 
     protected
 
-    def handler(handler_class, handler_opts)
+    def handler(handler_class, handler_opts = {})
       @worker_class_factory = proc { |me|
         Class.new do
           include Sneakers::Worker
