@@ -52,8 +52,8 @@ module ConfigurableBackoffHandlerTestBase
     self.class.queue_name
   end
 
-  def run_worker!
-    self.class.worker_class.new.run
+  def worker_class
+    self.class.worker_class
   end
 
   def expected_retries
@@ -69,14 +69,14 @@ module ConfigurableBackoffHandlerTestBase
   end
 
   def run_retry_end_to_end(entry_exchange, routing_key)
-    ['timeout', 'error', 'requeue', 'reject'].each do |type_of_failure|
-      run_worker!
+    ['timeout', 'error', 'reject'].each do |type_of_failure|
+      worker_class.new.run
       entry_exchange.publish(type_of_failure, routing_key: routing_key)
       sleep 0.1
     end
 
     expected_retries.each do |current_delay|
-      assert_equal 4, retry_queue(current_delay).message_count
+      assert_equal 3, retry_queue(current_delay).message_count
 
       other_delays = expected_retries - [current_delay]
       other_delays.each do |other_delay|
@@ -88,7 +88,7 @@ module ConfigurableBackoffHandlerTestBase
       sleep current_delay
     end
 
-    assert_equal 4, error_queue.message_count
+    assert_equal 3, error_queue.message_count
 
     expected_retries.each do |delay|
       assert_equal 0, retry_queue(delay).message_count
@@ -101,6 +101,23 @@ module ConfigurableBackoffHandlerTestBase
 
   def test_works_when_shoveling_messages
     run_retry_end_to_end channel.default_exchange, queue_name
+  end
+
+  def test_requeue_does_not_enter_retry_queues
+    worker = worker_class.new
+    worker.run
+    exchange.publish('requeue', routing_key: 'lifecycle.created')
+    sleep 0.1
+
+    worker.stop
+    sleep 0.5
+
+    assert_equal 1, primary_queue.message_count
+
+    expected_retries.each do |delay|
+      assert_equal 0, retry_queue(delay).message_count
+    end
+    assert_equal 0, error_queue.message_count
   end
 
   protected
@@ -116,16 +133,27 @@ module ConfigurableBackoffHandlerTestBase
     @exchange ||= channel.topic("#{queue_name}.exchange", durable: false)
   end
 
+  def primary_queue
+    @primary_queue ||=
+      channel.queue(queue_name,
+        durable: false,
+        arguments: {
+          :'x-dead-letter-exchange' => "#{queue_name}.error.exchange",
+          :'x-dead-letter-routing-key' => queue_name
+        }
+      )
+  end
+
   def retry_queue(delay)
     channel.queues.clear
     delay_ms = s_to_ms(delay)
     channel.queue("#{queue_name}.retry.#{delay_ms}",
       durable: false,
       arguments: {
-        :"x-dead-letter-exchange" => "#{queue_name}.exchange",
-        :"x-dead-letter-routing-key" => queue_name,
-        :"x-message-ttl" => delay_ms,
-        :"x-expires" => delay_ms * 2,
+        :'x-dead-letter-exchange' => "#{queue_name}.exchange",
+        :'x-dead-letter-routing-key' => queue_name,
+        :'x-message-ttl' => delay_ms,
+        :'x-expires' => delay_ms * 2,
       }
     )
   end

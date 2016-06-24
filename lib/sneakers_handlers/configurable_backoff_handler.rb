@@ -49,8 +49,12 @@ module SneakersHandlers
       channel.acknowledge(delivery_info.delivery_tag, false)
     end
 
-    def reject(delivery_info, properties, message, _requeue = true)
-      retry_message(delivery_info, properties, message, :reject)
+    def reject(delivery_info, properties, message, requeue = false)
+      if requeue
+        channel.reject(delivery_info.delivery_tag, true)
+      else
+        retry_message(delivery_info, properties, message, :reject)
+      end
     end
 
     def error(delivery_info, properties, message, err)
